@@ -52,27 +52,49 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    if keys[pygame.K_UP] and direction != "down":
-        direction = "up"
+    pressed_directions = []
+
+    if keys[pygame.K_UP]:
+        pressed_directions.append("up")
+    if keys[pygame.K_DOWN]:
+        pressed_directions.append("down")
+    if keys[pygame.K_LEFT]:
+        pressed_directions.append("left")
+    if keys[pygame.K_RIGHT]:
+        pressed_directions.append("right")
+
+    if len(pressed_directions) == 1:
+        new_direction = pressed_directions[0]
+        if (
+            (direction == "up" and new_direction != "down")
+            or (direction == "down" and new_direction != "up")
+            or (direction == "left" and new_direction != "right")
+            or (direction == "right" and new_direction != "left")
+        ):
+            direction = new_direction
+
+    if direction == "up":
         change_x = 0
         change_y = -BLOCK_SIZE / 5
-    elif keys[pygame.K_DOWN] and direction != "up":
-        direction = "down"
+    elif direction == "down":
         change_x = 0
         change_y = BLOCK_SIZE / 5
-    elif keys[pygame.K_LEFT] and direction != "right":
-        direction = "left"
+    elif direction == "left":
         change_x = -BLOCK_SIZE / 5
         change_y = 0
-    elif keys[pygame.K_RIGHT] and direction != "left":
-        direction = "right"
+    elif direction == "right":
         change_x = BLOCK_SIZE / 5
         change_y = 0
 
-    if snake_y <= 0 or snake_y >= RANGE_Y - snake_height:
-        change_y *= -1
-    if snake_x <= 0 or snake_x >= RANGE_X - snake_width:
-        change_x *= -1
+    if snake_x < 0:
+        snake_x = RANGE_X - snake_width
+    elif snake_x >= RANGE_X:
+        snake_x = 0
+
+    if snake_y < 0:
+        snake_y = RANGE_Y - snake_height
+    elif snake_y >= RANGE_Y:
+        snake_y = 0
 
     snake_x += change_x
     snake_y += change_y
@@ -88,10 +110,14 @@ while running:
     if len(snake_list) > snake_length:
         del snake_list[0]
 
-    if len(snake_list) > 2 and snake_list[0] == snake_list[-1]:
+    if head in snake_list[:-1]:
         FONT = pygame.font.Font(None, 36)
         END_MESSAGE = FONT.render("Przegrana", True, RED)
-        screen.blit(END_MESSAGE, END_MESSAGE.get_rect())
+        screen.blit(
+            END_MESSAGE, END_MESSAGE.get_rect(center=(RANGE_X // 2, RANGE_Y // 2))
+        )
+        pygame.display.update()
+        pygame.time.wait(2000)
         running = False
 
     for segment in snake_list:
